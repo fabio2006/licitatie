@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:core="http://activemq.apache.org/schema/jms"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-4.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.9.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<annotation-driven />
+	<beans:bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<beans:property name="brokerURL">
+			<beans:value>tcp://localhost:61616</beans:value>
+		</beans:property>
+	</beans:bean>
+	<beans:bean id="pooledJmsConnectionFactory"
+		class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<beans:property name="connectionFactory" ref="jmsConnectionFactory"/>
+	</beans:bean>
+	
+	<beans:bean id="coada_licitatie" class="org.apache.activemq.command.ActiveMQQueue">
+		<beans:constructor-arg value="coada_licitatie"/>
+	</beans:bean>
+	<beans:bean id="topica_licitatie" class="org.apache.activemq.command.ActiveMQTopic">
+		<beans:constructor-arg value="topica_licitatie"/>
+	</beans:bean>
+	
+	<beans:bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<beans:property name="connectionFactory" ref="pooledJmsConnectionFactory"/>
+	</beans:bean>
+	<beans:bean id="licConsumer" class="ro.fabio.controller.ConsumerController"/>
+	
+	<beans:bean id="licTopicConsumer" class="ro.fabio.controller.ConsumerTopicController"/>
+	
+	<jms:listener-container concurrency="1" connection-factory="jmsConnectionFactory">
+		<jms:listener destination="topica_licitatie" ref="licTopicConsumer"/>
+	</jms:listener-container>	
+	
+	<jms:listener-container concurrency="1" connection-factory="jmsConnectionFactory">
+		<jms:listener destination="coada_licitatie" ref="licConsumer"/>
+	</jms:listener-container>	
+	
+	
+	<resources mapping="/resources/**" location="/resources/" />
+
+	<beans:bean id="tilesConfigurer"
+		class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+		<beans:property name="definitions">
+			<beans:list>
+				<beans:value>/WEB-INF/defs/general.xml</beans:value>
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="viewResolver"
+		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<beans:property name="viewClass"
+			value="org.springframework.web.servlet.view.tiles3.TilesView" />
+	</beans:bean>
+	<beans:bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<beans:property name="maxUploadSize" value="10602187"/>
+	</beans:bean>
+	
+	<context:component-scan base-package="ro.fabio.controller" />
+	
+	
+	
+</beans:beans>
