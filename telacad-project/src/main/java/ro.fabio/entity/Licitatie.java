@@ -62,9 +62,9 @@ public class Licitatie implements Serializable {
 	private Date endTime;
 	
 	@NotNull
-    @Column(length = 20, nullable = false)
-    @Enumerated(EnumType.STRING)
-    private LicitatieStatus status;
+        @Column(length = 20, nullable = false)
+        @Enumerated(EnumType.STRING)
+        private LicitatieStatus status;
 	
 	@DecimalMin("0")
 	private float startPrice;
